@@ -32,4 +32,14 @@ class CultivoService {
     final response = await http.delete(Uri.parse('$baseUrl/$id'));
     return response.statusCode == 200;
   }
+
+  // Editar cultivo
+  Future<bool> updateCultivo(Cultivo cultivo) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/${cultivo.id}'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(cultivo.toJson()),
+    );
+    return response.statusCode == 200;
+  }
 }
