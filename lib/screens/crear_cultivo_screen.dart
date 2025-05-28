@@ -4,7 +4,9 @@ import '../services/cultivo_service.dart';
 
 /// Pantalla para crear un nuevo cultivo.
 class CrearCultivoScreen extends StatefulWidget {
-  const CrearCultivoScreen({super.key});
+  final Cultivo? cultivo; // Si es null, es creación; si no, edición
+
+  const CrearCultivoScreen({super.key, this.cultivo});
 
   @override
   _CrearCultivoScreenState createState() => _CrearCultivoScreenState();
@@ -19,43 +21,77 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
   bool _isSaving = false;
   DateTime? _selectedDate;
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.cultivo != null) {
+      _nombreController.text = widget.cultivo!.nombre;
+      _tipoController.text = widget.cultivo!.tipo ?? '';
+      if (widget.cultivo!.fecha != null) {
+        _selectedDate = widget.cultivo!.fecha;
+        _fechaController.text =
+            "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}";
+      }
+    }
+  }
+
   /// Guarda el cultivo en el servicio y maneja la respuesta.
   Future<void> _guardarCultivo() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isSaving = true);
 
       try {
-        final nuevoCultivo = Cultivo(
-          id: 0, // ID será asignado por la API
+        final cultivo = Cultivo(
+          id: widget.cultivo?.id ?? 0,
           nombre: _nombreController.text.trim(),
-          tipo: _tipoController.text.trim().isEmpty ? null : _tipoController.text.trim(),
+          tipo:
+              _tipoController.text.trim().isEmpty
+                  ? null
+                  : _tipoController.text.trim(),
           fecha: _selectedDate,
         );
 
-        final exito = await _cultivoService.addCultivo(nuevoCultivo);
+        bool exito;
+        if (widget.cultivo == null) {
+          exito = await _cultivoService.addCultivo(cultivo);
+        } else {
+          exito = await _cultivoService.updateCultivo(cultivo);
+        }
 
         setState(() => _isSaving = false);
 
         if (exito) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Cultivo creado correctamente')),
+              SnackBar(
+                content: Text(
+                  widget.cultivo == null
+                      ? 'Cultivo creado correctamente'
+                      : 'Cultivo actualizado correctamente',
+                ),
+              ),
             );
-            Navigator.pop(context);
+            Navigator.pop(context, true);
           }
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Error al crear el cultivo')),
+              SnackBar(
+                content: Text(
+                  widget.cultivo == null
+                      ? 'Error al crear el cultivo'
+                      : 'Error al actualizar el cultivo',
+                ),
+              ),
             );
           }
         }
       } catch (e) {
         setState(() => _isSaving = false);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${e.toString()}')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
         }
       }
     }
@@ -125,9 +161,9 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
               _isSaving
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
-                      onPressed: _isSaving ? null : _guardarCultivo,
-                      child: const Text('Guardar'),
-                    ),
+                    onPressed: _isSaving ? null : _guardarCultivo,
+                    child: const Text('Guardar'),
+                  ),
             ],
           ),
         ),

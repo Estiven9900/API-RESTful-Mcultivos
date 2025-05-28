@@ -4,7 +4,7 @@ import '../services/cultivo_service.dart';
 import '../models/cultivo.dart';
 import 'crear_cultivo_screen.dart';
 
-/// Pantalla que muestra una lista de cultivos.
+/// Pantalla que muestra una lista de cultivos en una tabla.
 class CultivoListScreen extends StatefulWidget {
   const CultivoListScreen({super.key});
 
@@ -37,6 +37,8 @@ class _CultivoListScreenState extends State<CultivoListScreen> {
     );
     if (mounted && result == true) {
       _refreshCultivos();
+    } else {
+      _refreshCultivos(); // Siempre refresca al volver
     }
   }
 
@@ -65,19 +67,67 @@ class _CultivoListScreenState extends State<CultivoListScreen> {
             );
           } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
             final cultivos = snapshot.data!;
-            return ListView.builder(
-              itemCount: cultivos.length,
-              itemBuilder: (context, index) {
-                final cultivo = cultivos[index];
-                return ListTile(
-                  title: Text(cultivo.nombre),
-                  subtitle: Text(
-                    cultivo.tipo != null && cultivo.fecha != null
-                        ? 'Tipo: ${cultivo.tipo} | Fecha: ${DateFormat('dd/MM/yyyy').format(cultivo.fecha!)}'
-                        : cultivo.tipo ?? 'Sin Tipo',
-                  ),
-                );
-              },
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Card(
+                elevation: 4,
+                margin: const EdgeInsets.all(16),
+                child: DataTable(
+                  headingRowColor: MaterialStateProperty.resolveWith<Color?>((
+                    Set<MaterialState> states,
+                  ) {
+                    return Colors.green[100];
+                  }),
+                  dataRowColor: MaterialStateProperty.resolveWith<Color?>((
+                    Set<MaterialState> states,
+                  ) {
+                    if (states.contains(MaterialState.selected)) {
+                      return Colors.green[50];
+                    }
+                    return null;
+                  }),
+                  columnSpacing: 32,
+                  columns: const [
+                    DataColumn(
+                      label: Text(
+                        'Nombre',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Tipo',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Fecha',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                  rows:
+                      cultivos.map((cultivo) {
+                        return DataRow(
+                          cells: [
+                            DataCell(Text(cultivo.id.toString())),
+                            DataCell(Text(cultivo.nombre)),
+                            DataCell(Text(cultivo.tipo ?? 'Sin Tipo')),
+                            DataCell(
+                              Text(
+                                cultivo.fecha != null
+                                    ? DateFormat(
+                                      'dd/MM/yyyy',
+                                    ).format(cultivo.fecha!)
+                                    : 'Sin Fecha',
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                ),
+              ),
             );
           } else {
             return const Center(child: Text('No hay cultivos registrados.'));
