@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
-import 'screens/cultivo_list_screen.dart';
+import 'screens/login_screen.dart';
 
 void main() {
-  runApp(MiAppCultivos());
+  runApp(const MiAppCultivos());
 }
 
 class MiAppCultivos extends StatelessWidget {
+  const MiAppCultivos({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Gestión de Cultivos',
       theme: ThemeData(
         primarySwatch: Colors.green,
-        useMaterial3: true, // si usas Material 3
+        useMaterial3: true,
       ),
-      home: CultivoListScreen(), // pantalla principal
+      home: const LoginScreen(), // LoginScreen como página principal
     );
   }
 }
