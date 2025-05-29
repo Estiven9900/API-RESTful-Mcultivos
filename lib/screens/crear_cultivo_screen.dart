@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/cultivo.dart';
 import '../services/cultivo_service.dart';
 
-/// Pantalla para crear un nuevo cultivo.
+/// Pantalla para crear o editar un cultivo.
 class CrearCultivoScreen extends StatefulWidget {
   final Cultivo? cultivo; // Si es null, es creación; si no, edición
 
@@ -29,8 +30,7 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
       _tipoController.text = widget.cultivo!.tipo ?? '';
       if (widget.cultivo!.fecha != null) {
         _selectedDate = widget.cultivo!.fecha;
-        _fechaController.text =
-            "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}";
+        _fechaController.text = DateFormat('dd/MM/yyyy').format(_selectedDate!);
       }
     }
   }
@@ -44,10 +44,7 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
         final cultivo = Cultivo(
           id: widget.cultivo?.id ?? 0,
           nombre: _nombreController.text.trim(),
-          tipo:
-              _tipoController.text.trim().isEmpty
-                  ? null
-                  : _tipoController.text.trim(),
+          tipo: _tipoController.text.trim().isEmpty ? null : _tipoController.text.trim(),
           fecha: _selectedDate,
         );
 
@@ -58,10 +55,9 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
           exito = await _cultivoService.updateCultivo(cultivo);
         }
 
-        setState(() => _isSaving = false);
-
-        if (exito) {
-          if (mounted) {
+        if (mounted) {
+          setState(() => _isSaving = false);
+          if (exito) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -69,29 +65,28 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
                       ? 'Cultivo creado correctamente'
                       : 'Cultivo actualizado correctamente',
                 ),
+                backgroundColor: Colors.green,
               ),
             );
             Navigator.pop(context, true);
-          }
-        } else {
-          if (mounted) {
+          } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  widget.cultivo == null
-                      ? 'Error al crear el cultivo'
-                      : 'Error al actualizar el cultivo',
-                ),
+              const SnackBar(
+                content: Text('Error al guardar el cultivo'),
+                backgroundColor: Colors.red,
               ),
             );
           }
         }
       } catch (e) {
-        setState(() => _isSaving = false);
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+          setState(() => _isSaving = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       }
     }
@@ -101,14 +96,27 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Colors.green, // Color del selector
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+            dialogBackgroundColor: Colors.white,
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        _fechaController.text = "${picked.day}/${picked.month}/${picked.year}";
+        _fechaController.text = DateFormat('dd/MM/yyyy').format(picked);
       });
     }
   }
@@ -124,7 +132,11 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Agregar Cultivo')),
+      appBar: AppBar(
+        title: Text(widget.cultivo == null ? 'Agregar Cultivo' : 'Editar Cultivo'),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -133,7 +145,10 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
             children: [
               TextFormField(
                 controller: _nombreController,
-                decoration: const InputDecoration(labelText: 'Nombre'),
+                decoration: const InputDecoration(
+                  labelText: 'Nombre',
+                    border: OutlineInputBorder(),
+                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Por favor, ingrese un nombre válido';
@@ -141,13 +156,23 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _tipoController,
-                decoration: const InputDecoration(labelText: 'Tipo (opcional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Tipo (opcional)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.category, color: Colors.green),
+                ),
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _fechaController,
-                decoration: const InputDecoration(labelText: 'Fecha'),
+                decoration: const InputDecoration(
+                  labelText: 'Fecha',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.calendar_today, color: Colors.green),
+                ),
                 readOnly: true,
                 onTap: () => _selectDate(context),
                 validator: (value) {
@@ -159,11 +184,22 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
               ),
               const SizedBox(height: 20),
               _isSaving
-                  ? const CircularProgressIndicator()
+                  ? const CircularProgressIndicator(color: Colors.green)
                   : ElevatedButton(
-                    onPressed: _isSaving ? null : _guardarCultivo,
-                    child: const Text('Guardar'),
-                  ),
+                      onPressed: _isSaving ? null : _guardarCultivo,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      child: const Text(
+                        'Guardar',
+                        style: TextStyle(fontSize: 18.0),
+                      ),
+                    ),
             ],
           ),
         ),
