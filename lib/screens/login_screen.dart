@@ -10,28 +10,19 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Clave global para el formulario
   final _formKey = GlobalKey<FormState>();
-
-  // Controladores para los campos de texto
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  // Bandera para alternar la visibilidad de la contraseña
   bool _obscurePassword = true;
-
-  // Bandera para el indicador de carga
   bool _isLoading = false;
 
   @override
   void dispose() {
-    // Liberar recursos de los controladores
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  // Manejar el inicio de sesión con el backend
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -39,6 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       try {
+        print('Iniciando autenticación para ${_emailController.text}');
         final authService = AuthService();
         final success = await authService.login(
           _emailController.text,
@@ -46,17 +38,19 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         if (success) {
-          // Navegar a la pantalla de lista de cultivos
+          print('Login exitoso, navegando a CultivoListScreen');
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const CultivoListScreen()),
           );
         } else {
+          print('Login fallido: Credenciales incorrectas');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Correo o contraseña incorrectos')),
           );
         }
       } catch (e) {
+        print('Error en _handleLogin: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
         );
@@ -68,12 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Validación del correo electrónico
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Por favor, ingresa tu correo electrónico';
     }
-    // Patrón regex básico para validar el formato del correo
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) {
       return 'Por favor, ingresa un correo electrónico válido';
@@ -81,7 +73,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
-  // Validación de la contraseña
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Por favor, ingresa tu contraseña';
@@ -102,7 +93,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Título de la aplicación
                   const Text(
                     'Gestión de Cultivos',
                     style: TextStyle(
@@ -113,8 +103,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48.0),
-
-                  // Campo de correo electrónico
                   TextFormField(
                     controller: _emailController,
                     decoration: const InputDecoration(
@@ -126,8 +114,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     validator: _validateEmail,
                   ),
                   const SizedBox(height: 16.0),
-
-                  // Campo de contraseña
                   TextFormField(
                     controller: _passwordController,
                     decoration: InputDecoration(
@@ -152,8 +138,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     validator: _validatePassword,
                   ),
                   const SizedBox(height: 24.0),
-
-                  // Botón de inicio de sesión
                   ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
@@ -172,8 +156,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                   ),
                   const SizedBox(height: 16.0),
-
-                  // Enlace para "¿Olvidaste tu contraseña?"
                   TextButton(
                     onPressed: () {
                       // Placeholder para recuperación de contraseña
@@ -184,8 +166,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 8.0),
-
-                  // Enlace para "Registrarse"
                   TextButton(
                     onPressed: () {
                       // Placeholder para registro
