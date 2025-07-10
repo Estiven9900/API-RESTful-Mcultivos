@@ -3,9 +3,8 @@ import 'package:intl/intl.dart';
 import '../models/cultivo.dart';
 import '../services/cultivo_service.dart';
 
-/// Pantalla para crear o editar un cultivo.
 class CrearCultivoScreen extends StatefulWidget {
-  final Cultivo? cultivo; // Si es null, es creación; si no, edición
+  final Cultivo? cultivo;
 
   const CrearCultivoScreen({super.key, this.cultivo});
 
@@ -35,7 +34,6 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
     }
   }
 
-  /// Guarda el cultivo en el servicio y maneja la respuesta.
   Future<void> _guardarCultivo() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isSaving = true);
@@ -44,7 +42,10 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
         final cultivo = Cultivo(
           id: widget.cultivo?.id ?? 0,
           nombre: _nombreController.text.trim(),
-          tipo: _tipoController.text.trim().isEmpty ? null : _tipoController.text.trim(),
+          tipo:
+              _tipoController.text.trim().isEmpty
+                  ? null
+                  : _tipoController.text.trim(),
           fecha: _selectedDate,
         );
 
@@ -92,7 +93,6 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
     }
   }
 
-  /// Muestra un selector de fecha y actualiza el controlador.
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -103,7 +103,7 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Colors.green, // Color del selector
+              primary: Colors.green,
               onPrimary: Colors.white,
               onSurface: Colors.black,
             ),
@@ -133,7 +133,9 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.cultivo == null ? 'Agregar Cultivo' : 'Editar Cultivo'),
+        title: Text(
+          widget.cultivo == null ? 'Agregar Cultivo' : 'Editar Cultivo',
+        ),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
       ),
@@ -147,7 +149,7 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
                 controller: _nombreController,
                 decoration: const InputDecoration(
                   labelText: 'Nombre',
-                    border: OutlineInputBorder(),
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -186,20 +188,20 @@ class _CrearCultivoScreenState extends State<CrearCultivoScreen> {
               _isSaving
                   ? const CircularProgressIndicator(color: Colors.green)
                   : ElevatedButton(
-                      onPressed: _isSaving ? null : _guardarCultivo,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ),
-                      child: const Text(
-                        'Guardar',
-                        style: TextStyle(fontSize: 18.0),
+                    onPressed: _isSaving ? null : _guardarCultivo,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
+                    child: const Text(
+                      'Guardar',
+                      style: TextStyle(fontSize: 18.0),
+                    ),
+                  ),
             ],
           ),
         ),
