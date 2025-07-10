@@ -19,20 +19,31 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      final authService = AuthService();
-      final success = await authService.login(_emailController.text, _passwordController.text);
-
-      setState(() => _isLoading = false);
-
-      if (success) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const CultivoListScreen()),
+      try {
+        final authService = AuthService();
+        final token = await authService.loginAndGetToken(
+          _emailController.text,
+          _passwordController.text,
         );
-      } else {
+
+        if (token != null) {
+          await authService.getCultivos(token); // Aquí usas el token real
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const CultivoListScreen()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Correo o contraseña incorrectos')),
+          );
+        }
+      } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Correo o contraseña incorrectos')),
+          SnackBar(content: Text('Error: $e')),
         );
+      } finally {
+        setState(() => _isLoading = false);
       }
     }
   }
