@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MiAppCultivos());
 }
 
@@ -16,7 +17,7 @@ class MiAppCultivos extends StatelessWidget {
         primarySwatch: Colors.green,
         useMaterial3: true,
       ),
-      home: const LoginScreen(), // LoginScreen como página principal
+      home: const LoginScreen(),
     );
   }
 }
